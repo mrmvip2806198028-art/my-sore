@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">عطور</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f4f6;color:#171717}
+header{background:#111;color:#fff;padding:15px 6%;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+.logo{font-size:25px;font-weight:900}.actions{display:flex;gap:8px}
+button{border:0;border-radius:10px;padding:10px 15px;cursor:pointer;font-weight:bold;background:#111;color:#fff}
+.hero{background:#111;color:white;text-align:center;padding:55px 20px}.hero h1{font-size:40px;margin:0 0 10px}.hero p{color:#ddd}
+main{max-width:1100px;margin:auto;padding:25px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.card,.panel{background:#fff;border-radius:18px;padding:16px;box-shadow:0 5px 20px #0001}.card img,.placeholder{width:100%;height:190px;object-fit:cover;border-radius:13px}.placeholder{display:flex;align-items:center;justify-content:center;background:#eee;font-size:24px;font-weight:900}
+.card h3{margin-bottom:6px}.price{font-size:20px;font-weight:900}.stock{display:block;color:#777;margin:8px 0}
+.cart{margin-top:30px}.cartrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #eee}
+input,textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;margin:6px 0;font-size:15px}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:10;padding:20px;overflow:auto}.modal-box{max-width:700px;margin:30px auto;background:white;border-radius:18px;padding:20px}
+.close{float:left;background:#c62828}.admin-item{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px;border-bottom:1px solid #eee}
+.badge{background:#eee;border-radius:20px;padding:5px 9px}.danger{background:#c62828}.success{background:#198754}
+.hidden{display:none}@media(max-width:600px){.hero h1{font-size:30px}header{padding:12px 4%}.logo{font-size:21px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" id="shopLogo">LA SHOP</div>
+  <div class="actions">
+    <button onclick="openCart()">🛒 السلة <span id="cartCount">0</span></button>
+    <button onclick="openAdmin()">⚙️ الإدارة</button>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>أهلاً بك في <span id="shopNameHero">LA SHOP</span></h1>
+  <p>متجرك الإلكتروني — اختر المنتج وأرسل طلبك بسهولة</p>
+</section>
+
+<main>
+  <h2>🛍️ منتجات <span id="shopNameProducts">LA SHOP</span></h2>
+  <div id="products" class="grid"></div>
+
+  <div class="panel cart">
+    <h2>🛒 سلة المشتريات</h2>
+    <div id="cartList">السلة فارغة</div>
+    <h3 id="cartTotal"></h3>
+    <div id="orderBox" class="hidden">
+      <h3>بيانات الطلب</h3>
+      <input id="customerName" placeholder="الاسم" required>
+      <input id="customerPhone" placeholder="رقم الهاتف" required>
+      <textarea id="customerAddress" placeholder="العنوان"></textarea>
+      <button onclick="sendOrder()">تأكيد الطلب</button>
+    </div>
+  </div>
+</main>
+
+<div id="adminModal" class="modal">
+ <div class="modal-box">
+  <button class="close" onclick="closeAdmin()">إغلاق</button>
+  <h2>⚙️ لوحة إدارة <span id="adminShopName">LA SHOP</span></h2>
+  <p>اسم الشوب ورقم الواتساب يتم ضبطهما من إعدادات الكود، أما بيانات دخول الإدارة فيمكن تغييرها من هنا.</p>
+
+  <div id="loginArea">
+    <h3>🔐 دخول مالك المنصة</h3>
+    <p>هذه اللوحة مخصصة لصاحب المنصة فقط.</p>
+    <input id="adminUser" placeholder="اسم الإدارة">
+    <input id="adminPass" type="password" placeholder="كلمة المرور">
+    <button onclick="loginAdmin()">دخول الإدارة</button>
+    <p id="loginMsg"></p>
+  </div>
+
+  <div id="adminArea" class="hidden">
+    <div class="panel" style="background:#f7f7f7">
+      <h3>👑 إعدادات مالك المنصة</h3>
+      <p>من هنا تقدر تغيّر اسم دخول الإدارة والباسورد. التغيير محفوظ على هذا المتصفح فقط لأن المشروع ملف HTML واحد.</p>
+      <input id="newOwnerUser" placeholder="اسم الإدارة الجديد">
+      <input id="newOwnerPass" type="password" placeholder="الباسورد الجديد">
+      <button onclick="changeOwnerCredentials()">حفظ بيانات الإدارة</button>
+      <p id="credentialsMsg"></p>
+    </div>
+    <h3>➕ إضافة منتج</h3>
+    <input id="pName" placeholder="خمرا">
+    <input id="pPrice" type="number" placeholder="250">
+    <input id="pStock" type="number" placeholder="50">
+    <input id="pImage" placeholder="رابط صورة المنتج">
+    <textarea id="pDesc" placeholder="وصف المنتج"></textarea>
+    <button onclick="addProduct()">إضافة المنتج</button>
+
+    <h3>📦 المنتجات</h3>
+    <div id="adminProducts"></div>
+
+    <h3>📋 الطلبات</h3>
+    <div id="orders"></div>
+  </div>
+ </div>
+</div>
+
+<script>
+// ================= إعدادات الشوب =================
+// غيّر القيم دي فقط لو عايز تغيّر اسم الشوب أو رقم الواتساب
+const SHOP_NAME = "عطور";
+const WHATSAPP_NUMBER = "01275026300"; // اكتب رقمك بصيغة دولية بدون + أو مسافات
+// حساب مالك المنصة — غيّرهم أنت فقط
+const OWNER_USERNAME = "mazen";
+const OWNER_PASSWORD = "mazen";
+
+let products=JSON.parse(localStorage.getItem("la_products")||"null")||[
+ {id:1,name:"منتج تجريبي",price:100,stock:10,image:"",desc:"ضع منتجاتك من لوحة الإدارة"}
+];
+let cart=JSON.parse(localStorage.getItem("la_cart")||"[]");
+let orders=JSON.parse(localStorage.getItem("la_orders")||"[]");
+let ownerUser=localStorage.getItem("la_owner_user")||OWNER_USERNAME;
+let ownerPass=localStorage.getItem("la_owner_pass")||OWNER_PASSWORD;
+let adminLoggedIn=false;
+
+function save(){
+ localStorage.setItem("la_products",JSON.stringify(products));
+ localStorage.setItem("la_cart",JSON.stringify(cart));
+ localStorage.setItem("la_orders",JSON.stringify(orders));
+}
+function money(n){return Number(n).toFixed(2)+" جنيه"}
+
+function renderProducts(){
+ document.getElementById("products").innerHTML=products.map(p=>`
+ <div class="card">
+  ${p.image?`<img src="${escapeHtml(p.image)}">`:`<div class="placeholder">LA SHOP</div>`}
+  <h3>${escapeHtml(p.name)}</h3>
+  <p>${escapeHtml(p.desc||"")}</p>
+  <div class="price">${money(p.price)}</div>
+  <span class="stock">المتاح: ${p.stock}</span>
+  <button onclick="buyWhatsApp(${p.id})" ${p.stock<1?"disabled":""}>شراء عبر واتساب</button>
+  <button onclick="addToCart(${p.id})" ${p.stock<1?"disabled":""} style="margin-top:7px;background:#555">إضافة للسلة</button>
+ </div>`).join("");
+}
+function addToCart(id){
+ let p=products.find(x=>x.id===id), item=cart.find(x=>x.id===id);
+ if(!p||p.stock<1)return;
+ if(item){if(item.qty>=p.stock)return;item.qty++}else cart.push({id,qty:1});
+ save();renderCart();
+}
+function removeCart(id){cart=cart.filter(x=>x.id!==id);save();renderCart()}
+function renderCart(){
+ let total=0;
+ if(!cart.length){
+  document.getElementById("cartList").innerHTML="السلة فارغة";
+  document.getElementById("cartTotal").textContent="";
+  document.getElementById("orderBox").classList.add("hidden");
+ }else{
+  document.getElementById("orderBox").classList.remove("hidden");
+  document.getElementById("cartList").innerHTML=cart.map(x=>{
+   let p=products.find(p=>p.id===x.id); if(!p)return "";
+   total+=p.price*x.qty;
+   return `<div class="cartrow"><span>${escapeHtml(p.name)} × ${x.qty}</span><b>${money(p.price*x.qty)}</b><button class="danger" onclick="removeCart(${x.id})">حذف</button></div>`;
+  }).join("");
+  document.getElementById("cartTotal").textContent="الإجمالي: "+money(total);
+ }
+ document.getElementById("cartCount").textContent=cart.reduce((a,x)=>a+x.qty,0);
+}
+function openCart(){document.querySelector(".cart").scrollIntoView({behavior:"smooth"})}
+
+function buyWhatsApp(id){
+ const p=products.find(x=>x.id===id);
+ if(!p || p.stock<1) return;
+ const text=`مرحباً، أريد شراء المنتج:%0A%0Aالمنتج: ${encodeURIComponent(p.name)}%0Aالسعر: ${encodeURIComponent(money(p.price))}%0Aالكمية: 1`;
+ const url=`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
+ window.open(url,"_blank");
+}
+function sendOrder(){
+ if(!cart.length)return;
+ let name=document.getElementById("customerName").value.trim();
+ let phone=document.getElementById("customerPhone").value.trim();
+ let address=document.getElementById("customerAddress").value.trim();
+ if(!name||!phone){alert("اكتب الاسم ورقم الهاتف");return}
+ let total=0,items=[];
+ for(const x of cart){
+  const p=products.find(p=>p.id===x.id);
+  if(!p||x.qty>p.stock){alert("الكمية المطلوبة غير متوفرة");return}
+  total+=p.price*x.qty;items.push({name:p.name,qty:x.qty,price:p.price});
+ }
+ cart.forEach(x=>{let p=products.find(p=>p.id===x.id);p.stock-=x.qty});
+ orders.unshift({id:Date.now(),name,phone,address,items,total,status:"جديد",date:new Date().toLocaleString("ar-EG")});
+ cart=[];save();document.title=SHOP_NAME;
+document.getElementById("shopLogo").textContent=SHOP_NAME;
+document.getElementById("shopNameHero").textContent=SHOP_NAME;
+document.getElementById("shopNameProducts").textContent=SHOP_NAME;
+document.getElementById("adminShopName").textContent=SHOP_NAME;
+renderProducts();renderCart();renderOrders();
+ alert("تم إرسال طلبك بنجاح ✅");
+ document.getElementById("customerName").value="";
+ document.getElementById("customerPhone").value="";
+ document.getElementById("customerAddress").value="";
+}
+
+function openAdmin(){document.getElementById("adminModal").style.display="block"}
+function closeAdmin(){document.getElementById("adminModal").style.display="none"}
+function loginAdmin(){
+ if(adminUser.value===ownerUser&&adminPass.value===ownerPass){
+  adminLoggedIn=true;
+  loginArea.classList.add("hidden");
+  adminArea.classList.remove("hidden");
+  renderAdmin();
+ }else {
+  loginMsg.textContent="اسم الإدارة أو كلمة المرور غير صحيحة";
+ }
+}
+function changeOwnerCredentials(){
+ if(!adminLoggedIn)return;
+ const u=document.getElementById("newOwnerUser").value.trim();
+ const pw=document.getElementById("newOwnerPass").value;
+ if(u.length<3 || pw.length<6){
+   document.getElementById("credentialsMsg").textContent="اسم الإدارة 3 أحرف على الأقل والباسورد 6 أحرف على الأقل.";
+   return;
+ }
+ ownerUser=u; ownerPass=pw;
+ localStorage.setItem("la_owner_user",ownerUser);
+ localStorage.setItem("la_owner_pass",ownerPass);
+ document.getElementById("credentialsMsg").textContent="تم تغيير بيانات الإدارة ✅";
+ document.getElementById("newOwnerUser").value="";
+ document.getElementById("newOwnerPass").value="";
+}
+function addProduct(){
+ let name=pName.value.trim(),price=Number(pPrice.value),stock=Number(pStock.value),image=pImage.value.trim(),desc=pDesc.value.trim();
+ if(!name||price<0||stock<0){alert("أكمل بيانات المنتج");return}
+ products.unshift({id:Date.now(),name,price,stock,image,desc});
+ save();renderProducts();renderAdmin();
+ pName.value=pPrice.value=pStock.value=pImage.value=pDesc.value="";
+}
+function deleteProduct(id){
+ if(!confirm("هل تريد حذف المنتج؟"))return;
+ products=products.filter(p=>p.id!==id);cart=cart.filter(x=>products.some(p=>p.id===x.id));
+ save();document.title=SHOP_NAME;
+document.getElementById("shopLogo").textContent=SHOP_NAME;
+document.getElementById("shopNameHero").textContent=SHOP_NAME;
+document.getElementById("shopNameProducts").textContent=SHOP_NAME;
+document.getElementById("adminShopName").textContent=SHOP_NAME;
+renderProducts();renderCart();renderAdmin();
+}
+function renderAdmin(){
+ document.getElementById("adminProducts").innerHTML=products.map(p=>`
+ <div class="admin-item"><span><b>${escapeHtml(p.name)}</b><br>${money(p.price)} — المخزون: ${p.stock}</span>
+ <button class="danger" onclick="deleteProduct(${p.id})">حذف</button></div>`).join("");
+ renderOrders();
+}
+function renderOrders(){
+ document.getElementById("orders").innerHTML=orders.length?orders.map(o=>`
+ <div class="panel">
+  <b>طلب #${o.id}</b> — ${o.date}<br>
+  العميل: ${escapeHtml(o.name)} — ${escapeHtml(o.phone)}<br>
+  العنوان: ${escapeHtml(o.address)}<br>
+  المنتجات: ${o.items.map(i=>`${escapeHtml(i.name)} × ${i.qty}`).join("، ")}<br>
+  الإجمالي: <b>${money(o.total)}</b><br>
+  الحالة: <select onchange="changeStatus(${o.id},this.value)">
+   ${["جديد","قيد التجهيز","تم الشحن","مكتمل","ملغي"].map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}
+  </select>
+ </div>`).join(""):"لا توجد طلبات";
+}
+function changeStatus(id,status){let o=orders.find(x=>x.id===id);if(o)o.status=status;save();renderOrders()}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+document.title=SHOP_NAME;
+document.getElementById("shopLogo").textContent=SHOP_NAME;
+document.getElementById("shopNameHero").textContent=SHOP_NAME;
+document.getElementById("shopNameProducts").textContent=SHOP_NAME;
+document.getElementById("adminShopName").textContent=SHOP_NAME;
+renderProducts();renderCart();
+</script>
+</body>
+</html>
